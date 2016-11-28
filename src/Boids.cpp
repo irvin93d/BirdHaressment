@@ -7,7 +7,6 @@ Boids::Boids()
 	// TODO: init size of flock
 	// TODO: init boundaries
 	// TODO: create random flock
-	lastUpdate = clock();
 }
 
 void Boids::add(vec3 position)
@@ -16,13 +15,14 @@ void Boids::add(vec3 position)
 
 	Boid b;
 	b.position = position;
-	b.velocity = vec3(position.x,0,0);
+	b.velocity = vec3(position.x /100,0,0);
 	boids.push_back(b);
 
 	for(unsigned int i = 0 ; i < flockSize - 1 ; i++)
 		distances.push_back(0);
 }
 
+//TODO: remove
 void Boids::remove(unsigned int i)
 {
 	if(i < flockSize)
@@ -37,6 +37,7 @@ void Boids::printVec3(vec3 v, string name)
 		<< ") ";
 }
 
+//TODO: remove
 void Boids::printAll()
 {
 	vector<Boid>::iterator it;
@@ -52,16 +53,12 @@ void Boids::printAll()
 }
 void Boids::update()
 {
-	clock_t currentTime = clock();
-	float dt = ((float)currentTime - (float)lastUpdate)/50000;
 	vector<Boid>::iterator it;
 	
 	// Set new position
 	for(it = boids.begin(); it != boids.end() ; ++it)
 	{
-		vec3 movement = (*it).velocity ;
-		movement *= dt;
-		(*it).position += movement; 
+		(*it).position += (*it).velocity; 
 	}
 
 	// TODO: Calculate all nearest	
@@ -81,7 +78,6 @@ void Boids::update()
 		}
 	}
 
-	lastUpdate = currentTime;
 }
 vector<Boid>::iterator Boids::begin()
 {
