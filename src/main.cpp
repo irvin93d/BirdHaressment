@@ -47,9 +47,6 @@ vector<float> treePlacement;
 Boids* boids;
 vec3 eyeMov = vec3(0,0,0);	
 
-/* Gives a random float between min and max */
-
-
 int randInt(int min, int max) {
 	float range = max - min;
 	float num = range * rand() / RAND_MAX;
@@ -110,7 +107,6 @@ static void updateEyePosition()
 	u *= moveSpeed*eyeMov.x;
 	eye += u;
 	look += u;
-	
 }
 
 static void mouse_callback(GLFWwindow *window, int button, int action, int mods)
