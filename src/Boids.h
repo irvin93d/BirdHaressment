@@ -30,7 +30,7 @@ public:
 	void update();
 	void printAll();
 	void add(vec3 position);
-	void delete(int i);
+	void remove(int i);
 	float getDistance(unsigned int a, unsigned int b);
 	vector<Boid>::iterator begin();
 	vector<Boid>::iterator end();
