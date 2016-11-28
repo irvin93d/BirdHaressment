@@ -210,6 +210,10 @@ static void init()
 	phung->addUniform("shine");
 	phung->addUniform("lightPos");
 	phung->addUniform("shadow");
+
+	boids->add(vec3(0,0,0));
+	boids->add(vec3(1,1,1));
+	boids->add(vec3(-1,-1,-1));
 	boids->update();
 }
 
@@ -265,6 +269,7 @@ static void render()
 		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
 		glUniform1f(phung->getUniform("shine"),10);
 		
+		boids->update();
 		vector<Boid>::iterator it;	
 		for(it = boids->begin() ; it != boids->end() ; ++it)
 		{
