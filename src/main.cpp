@@ -45,7 +45,7 @@ vec3 lightPos = vec3(20,15,0);
 vector<float> bunnyPlacement;
 vector<float> treePlacement;
 Boids* boids;
-	
+vec3 eyeMov = vec3(0,0,0);	
 
 /* Gives a random float between min and max */
 
@@ -67,58 +67,51 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 	
-	float moveSpeed = 0.2;
+	if(key == GLFW_KEY_W) {
+		if(action == GLFW_PRESS)
+			eyeMov.z++;
+		else if(action == GLFW_RELEASE)
+		{
+			eyeMov.z--;
+		}
+	}
+	if(key == GLFW_KEY_S) {
+		if(action == GLFW_PRESS)
+			eyeMov.z--;
+		else if(action == GLFW_RELEASE)
+			eyeMov.z++;
+	}
+	if(key == GLFW_KEY_A) {
+		if(action == GLFW_PRESS)
+			eyeMov.x--;
+		else if(action == GLFW_RELEASE)
+			eyeMov.x++;
+	}
+	if(key == GLFW_KEY_D) {
+		if(action == GLFW_PRESS)
+			eyeMov.x++;
+		else if(action == GLFW_RELEASE)
+			eyeMov.x--;
+	}
+}
+
+static void updateEyePosition()
+{
+	float moveSpeed = 0.15;
 	float rollSpeed = 0.05;
 	vec3 w = normalize(eye - look);
 	vec3 u = normalize(cross(up, w));
 	vec3 v = normalize(cross(w, u));
+
+	w *= moveSpeed*eyeMov.z;
+	eye -= vec3(w[0], 0, w[2]);
+	look -= vec3(w[0], 0, w[2]);
 	
-
-	if(key == GLFW_KEY_A && action != GLFW_RELEASE) {
-		u *= moveSpeed;
-		eye -= u;
-		look -= u;
-	}
-	if(key == GLFW_KEY_D && action != GLFW_RELEASE) {
-		u *= moveSpeed;
-		eye += u;
-		look += u;
-	}
-	if(key == GLFW_KEY_W && action != GLFW_RELEASE) {
-		w *= moveSpeed;
-		eye -= vec3(w[0], 0, w[2]);
-		look -= vec3(w[0], 0, w[2]);
-	}
-	if(key == GLFW_KEY_S && action != GLFW_RELEASE) {
-		w *= moveSpeed;
-		eye += vec3(w[0], 0, w[2]);
-		look += vec3(w[0], 0, w[2]);
-	}
-	if(key == GLFW_KEY_S && action != GLFW_RELEASE) {
-		w *= moveSpeed;
-		eye += w;
-		look += w;
-	}
-	if(key == GLFW_KEY_E && action != GLFW_RELEASE) {
-		v *= moveSpeed;
-		eye += v;
-		look += v;
-	}
-	if(key == GLFW_KEY_Q && action != GLFW_RELEASE) {
-		v *= moveSpeed;
-		eye -= v;
-		look -= v;
-	}
-	if(key == GLFW_KEY_C && action != GLFW_RELEASE) {
-		u *= rollSpeed;
-		up += u;
-	}
-	if(key == GLFW_KEY_Z && action != GLFW_RELEASE) {
-		u *= rollSpeed;
-		up -= u;
-	}
+	u *= moveSpeed*eyeMov.x;
+	eye += u;
+	look += u;
+	
 }
-
 
 static void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 {
@@ -213,6 +206,7 @@ static void init()
 
 static void render()
 {
+	updateEyePosition();
 	// Get current frame buffer size.
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
