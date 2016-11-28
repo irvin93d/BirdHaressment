@@ -44,15 +44,11 @@ vec3 up = vec3(0,1,0);
 vec3 lightPos = vec3(20,15,0);
 vector<float> bunnyPlacement;
 vector<float> treePlacement;
-Boids* boids = new Boids();
+Boids* boids;
 	
 
 /* Gives a random float between min and max */
-float randFloat(float min, float max) {
-	float range = max - min;
-	float num = range * rand() / RAND_MAX;
-	return (num + min);
-}
+
 
 int randInt(int min, int max) {
 	float range = max - min;
@@ -211,9 +207,7 @@ static void init()
 	phung->addUniform("lightPos");
 	phung->addUniform("shadow");
 
-	boids->add(vec3(0,0,0));
-	boids->add(vec3(1,1,1));
-	boids->add(vec3(-1,-1,-1));
+	boids = new Boids(40);
 	boids->update();
 }
 

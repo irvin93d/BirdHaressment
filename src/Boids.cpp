@@ -4,9 +4,41 @@ using namespace std;
 
 Boids::Boids() 
 {
-	// TODO: init size of flock
+	//srand(time(NULL));
 	// TODO: init boundaries
-	// TODO: create random flock
+}
+
+Boids::Boids(int flockSize) 
+{
+	Boids();
+	
+	for(int i = 0 ; i < flockSize ; i++)
+		add(vec3(randFloat(-10,10),randFloat(-10,10),randFloat(-10,10)));
+
+
+	// TODO: init boundaries
+}
+
+float Boids::min(float a, float b)
+{
+	if(a < b)
+		return a;
+	else 
+		return b;
+}
+
+float Boids::max(float a, float b)
+{
+	if(a > b)
+		return a;
+	else 
+		return b;
+}
+
+float Boids::randFloat(float min, float max) {
+	float range = max - min;
+	float num = range * rand() / RAND_MAX;
+	return (num + min);
 }
 
 void Boids::add(vec3 position)
@@ -66,7 +98,6 @@ void Boids::update()
 	// TODO: Velocity based on world
 	// TODO: aligment stuffd
 
-
 	// update distances
 	for(unsigned int a = 0, b = 1, i = 0; b < flockSize ; a++)
 	{
@@ -77,7 +108,6 @@ void Boids::update()
 			b++;
 		}
 	}
-
 }
 vector<Boid>::iterator Boids::begin()
 {

@@ -28,6 +28,7 @@ class Boids
 {
 public:
 	Boids();
+	Boids(int flockSize);
 	void add(vec3 position);
 	vector<Boid>::iterator begin();
 	float getDistance(unsigned int a, unsigned int b);
@@ -37,10 +38,13 @@ public:
 	// Debug only
 	void printAll();
 private:
+	float min(float a, float b);
+	float max(float a, float b);
 	vector<Boid> boids;
 	unsigned int flockSize = 0;
 	vector<float> distances; // {0-1, 0-2, 1-2, 0-3, 1-3, 2-3 ...
 	// Debug only
 	void printVec3(vec3 v, string name);
+	float randFloat(float min, float max);
 };
 
