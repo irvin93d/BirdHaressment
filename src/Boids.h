@@ -1,11 +1,11 @@
 
-#include <sys/time.h>
-// value_ptr for glm
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
 #include <string>
+
+// value_ptr for glm
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 using namespace glm;
@@ -31,7 +31,7 @@ public:
 	void update();
 	void printAll();
 	void add(vec3 position);
-	void remove(int i);
+	void remove(unsigned int i);
 	float getDistance(unsigned int a, unsigned int b);
 	vector<Boid>::iterator begin();
 	vector<Boid>::iterator end();

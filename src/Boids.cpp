@@ -7,22 +7,7 @@ Boids::Boids()
 	// TODO: init size of flock
 	// TODO: init boundaries
 	// TODO: create random flock
-	/*
-	for(float i = 0 ; i < flockSize ; i+=0.5)
-	{
-		Boid b;
-		b.position = vec3(0,0,0);
-		b.velocity = vec3(i*i,i*i,i*i);
-		boids.push_back(b);
-	}
-	int distanceSize = 0;
-	for(unsigned int i = 1 ; i < flockSize ; i++)
-		distanceSize++;
-	for(int i = 0 ; i < distanceSize ; i++)
-		distances.push_back(0);
-	*/
 	lastUpdate = clock();
-	
 }
 
 void Boids::add(vec3 position)
@@ -36,6 +21,12 @@ void Boids::add(vec3 position)
 
 	for(unsigned int i = 0 ; i < flockSize - 1 ; i++)
 		distances.push_back(0);
+}
+
+void Boids::remove(unsigned int i)
+{
+	if(i < flockSize)
+		boids.erase(boids.begin() + i);
 }
 
 void Boids::printVec3(vec3 v, string name)
