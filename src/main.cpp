@@ -14,7 +14,7 @@
 #include "Program.h"
 #include "MatrixStack.h"
 #include "Shape.h"
-#include "Boids.h"
+#include "Flock.h"
 
 
 // value_ptr for glm
@@ -38,13 +38,13 @@ shared_ptr<Shape> bunny;
 shared_ptr<Shape> sphere;
 shared_ptr<Shape> cylinder;
 shared_ptr<Shape> cone;
-vec3 eye = vec3(2,2,5);
-vec3 look = vec3(0,0,0);
+vec3 eye = vec3(0,0,0);
+vec3 look = vec3(0,0,-1);
 vec3 up = vec3(0,1,0);
 vec3 lightPos = vec3(20,15,0);
 vector<float> bunnyPlacement;
 vector<float> treePlacement;
-Boids* boids;
+Flock* flock;
 vec3 eyeMov = vec3(0,0,0);	
 
 int randInt(int min, int max) {
@@ -147,6 +147,12 @@ static void resize_callback(GLFWwindow *window, int width, int height) {
 }
 
 
+float randFloat(float min, float max) {
+	float range = max - min;
+	float num = range * rand() / RAND_MAX;
+	return (num + min);
+}
+
 static void init()
 {
 	srand(time(NULL));
@@ -172,7 +178,7 @@ static void init()
 	half_pyramid->init();
 
 	sphere = make_shared<Shape>();
-	sphere->loadMesh(RESOURCE_DIR + "sphere.obj");
+	sphere->loadMesh(RESOURCE_DIR + "cube.obj");
 	sphere->resize();
 	sphere->init();
 
@@ -196,8 +202,16 @@ static void init()
 	phung->addUniform("lightPos");
 	phung->addUniform("shadow");
 
-	boids = new Boids(40);
-	boids->update();
+	flock = new Flock();
+
+	for(int i = 0 ; i < 50 ; i++){
+		flock->addBoid(
+			Boid(
+					vec3(randFloat(-10,10),randFloat(-10,10),randFloat(-10,10)),
+					vec3(0,0,-1)
+				)
+		);
+	}
 }
 
 static void render()
@@ -253,13 +267,11 @@ static void render()
 		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
 		glUniform1f(phung->getUniform("shine"),10);
 		
-		boids->update();
-		vector<Boid>::iterator it;	
-		for(it = boids->begin() ; it != boids->end() ; ++it)
+		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
 			M->pushMatrix();
-				M->scale(vec3(0.1,0.1,0.1));
 				M->translate((*it).position);
+				M->scale(vec3(0.1,0.1,0.1));
 	  			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 	  			sphere->draw(phung);
 			M->popMatrix();

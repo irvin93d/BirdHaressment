@@ -13,7 +13,10 @@ Boids::Boids(int flockSize)
 	Boids();
 	
 	for(int i = 0 ; i < flockSize ; i++)
-		add(vec3(randFloat(-10,10),randFloat(-10,10),randFloat(-10,10)));
+		add(vec3(randFloat(lowBound.x,highBound.x),
+				 randFloat(lowBound.y,highBound.y),
+				 randFloat(lowBound.z,highBound.z)
+				 ));
 
 
 	// TODO: init boundaries
@@ -45,9 +48,9 @@ void Boids::add(vec3 position)
 {
 	flockSize++;
 
-	Boid b;
+	Boiden b;
 	b.position = position;
-	b.velocity = vec3(position.x /100,0,0);
+	b.velocity = vec3(0,0,0);
 	boids.push_back(b);
 
 	for(unsigned int i = 0 ; i < flockSize - 1 ; i++)
@@ -72,12 +75,12 @@ void Boids::printVec3(vec3 v, string name)
 //TODO: remove
 void Boids::printAll()
 {
-	vector<Boid>::iterator it;
+	vector<Boiden>::iterator it;
 	int i;
 	
 	for(it = boids.begin(), i = 0 ; it != boids.end() ; ++it, ++i)
 	{
-		 cout << "boid" << i << ": ";
+		 cout << "boiden" << i << ": ";
 		 printVec3((*it).position, "p");
 		 printVec3((*it).velocity, "v");
 		 cout << endl;
@@ -85,7 +88,7 @@ void Boids::printAll()
 }
 void Boids::update()
 {
-	vector<Boid>::iterator it;
+	vector<Boiden>::iterator it;
 	
 	// Set new position
 	for(it = boids.begin(); it != boids.end() ; ++it)
@@ -109,11 +112,11 @@ void Boids::update()
 		}
 	}
 }
-vector<Boid>::iterator Boids::begin()
+vector<Boiden>::iterator Boids::begin()
 {
 	return boids.begin();
 }
-vector<Boid>::iterator Boids::end()
+vector<Boiden>::iterator Boids::end()
 {
 	return boids.end();
 }
