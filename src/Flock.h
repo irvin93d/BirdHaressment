@@ -19,6 +19,7 @@ public:
 	Flock();
 	//Flock(unsigned int flockSize);
 	void addBoid(Boid b);
+	void run();
 //private:
 	vector<Boid> boids;
 };

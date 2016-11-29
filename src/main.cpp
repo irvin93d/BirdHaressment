@@ -207,8 +207,8 @@ static void init()
 	for(int i = 0 ; i < 50 ; i++){
 		flock->addBoid(
 			Boid(
-					vec3(randFloat(-10,10),randFloat(-10,10),randFloat(-10,10)),
-					vec3(0,0,-1)
+					vec3(0,0,0),
+					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
 	}
@@ -267,10 +267,11 @@ static void render()
 		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
 		glUniform1f(phung->getUniform("shine"),10);
 		
+		flock->run();
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
 			M->pushMatrix();
-				M->translate((*it).position);
+				M->translate(it->position);
 				M->scale(vec3(0.1,0.1,0.1));
 	  			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 	  			sphere->draw(phung);

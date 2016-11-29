@@ -9,3 +9,8 @@ Boid::Boid(vec3 p, vec3 v)
 	maxSpeed = 1;
 	maxForce = 0.03;
 }
+
+void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end)
+{
+	//position += velocity;
+}
