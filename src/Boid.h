@@ -22,7 +22,8 @@ public:
 	float maxForce;
 	float maxSpeed;
 
-//private:
+private:
+	vec3 seperation(vector<Boid>::iterator start, vector<Boid>::iterator end);
 
 };
 
