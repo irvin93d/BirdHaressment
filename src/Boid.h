@@ -24,6 +24,6 @@ public:
 
 private:
 	vec3 seperation(vector<Boid>::iterator start, vector<Boid>::iterator end);
-
+	vec3 align(vector<Boid>::iterator start, vector<Boid>::iterator end);
 };
 
