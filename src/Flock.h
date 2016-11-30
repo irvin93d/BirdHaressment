@@ -20,7 +20,9 @@ public:
 	//Flock(unsigned int flockSize);
 	void addBoid(Boid b);
 	void run();
-//private:
 	vector<Boid> boids;
+private:
+	vec3 boundMin = vec3(-30,3,-30);
+	vec3 boundMax = vec3(30,30,30);;
 };
 

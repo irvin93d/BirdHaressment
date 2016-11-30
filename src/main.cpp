@@ -38,8 +38,8 @@ shared_ptr<Shape> bunny;
 shared_ptr<Shape> sphere;
 shared_ptr<Shape> cylinder;
 shared_ptr<Shape> cone;
-vec3 eye = vec3(0,0,0);
-vec3 look = vec3(0,0,-1);
+vec3 eye = vec3(0,0,2);
+vec3 look = vec3(0,0,-10);
 vec3 up = vec3(0,1,0);
 vec3 lightPos = vec3(20,15,0);
 vector<float> bunnyPlacement;
@@ -204,14 +204,16 @@ static void init()
 
 	flock = new Flock();
 
-	for(int i = 0 ; i < 50 ; i++){
+	for(int i = 0 ; i < 250 ; i++){
 		flock->addBoid(
 			Boid(
-					vec3(0,0,0),
+					vec3(randFloat(-7,7),randFloat(-7,7),randFloat(-7,7)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
 	}
+	//flock->addBoid(Boid(vec3(0,0,0),vec3(-0.002,0.001,0)));
+	//flock->addBoid(Boid(vec3(1,0,0),vec3(0,0,0)));
 }
 
 static void render()
