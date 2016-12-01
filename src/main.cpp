@@ -58,6 +58,12 @@ static void error_callback(int error, const char *description)
 	cerr << description << endl;
 }
 
+float randFloat(float min, float max) {
+	float range = max - min;
+	float num = range * rand() / RAND_MAX;
+	return (num + min);
+}
+
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -89,6 +95,17 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 			eyeMov.x++;
 		else if(action == GLFW_RELEASE)
 			eyeMov.x--;
+	}
+	if(key == GLFW_KEY_KP_ADD){
+		flock->addBoid(
+			Boid(
+					vec3(randFloat(-7,7),randFloat(2,16),randFloat(-7,7)),
+					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
+				)
+		);
+	}
+	if(key == GLFW_KEY_KP_SUBTRACT){
+		flock->removeBoid();
 	}
 }
 
@@ -147,11 +164,6 @@ static void resize_callback(GLFWwindow *window, int width, int height) {
 }
 
 
-float randFloat(float min, float max) {
-	float range = max - min;
-	float num = range * rand() / RAND_MAX;
-	return (num + min);
-}
 
 static void init()
 {
@@ -204,15 +216,17 @@ static void init()
 
 	flock = new Flock();
 
+	
 	for(int i = 0 ; i < 250 ; i++){
 		flock->addBoid(
 			Boid(
-					vec3(randFloat(-7,7),randFloat(-7,7),randFloat(-7,7)),
+					vec3(randFloat(-7,7),randFloat(2,16),randFloat(-7,7)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
 	}
-	//flock->addBoid(Boid(vec3(0,0,0),vec3(-0.002,0.001,0)));
+	
+	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.002,0.001,0.003)));
 	//flock->addBoid(Boid(vec3(1,0,0),vec3(0,0,0)));
 }
 

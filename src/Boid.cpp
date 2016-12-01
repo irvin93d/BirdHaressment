@@ -16,7 +16,7 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 
 	// Calculate serparation and add to acceleration (multiply weight)
 	vec3 sep = seperation(start, end);
-	sep *= 1.5;
+	sep *= 3;
 	acceleration += sep;
 	// Calculate alignment and add to acceleration (multiply weight)
 	vec3 ali = align(start,end);
@@ -24,18 +24,14 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 	acceleration += ali;
 	// Calculate cohesion and add to acceleration (multiply weight)
 	vec3 coh = cohesion(start,end);
-	coh *= 1;
+	coh *= 1.5;
 	acceleration += coh;
 
 	vec3 wav = wallAvoidance(boundMin, boundMax);
-	wav *= 1.5;
+	wav *= 4;
 	acceleration += wav;
-	//cout << "acceleration: " << acceleration[0] << "," << acceleration[1] << "," << acceleration[2] << endl;
+	//cout << "wav: " << wav[0] << "," << wav[1] << "," << wav[2] << endl;
 
-	float d = length(acceleration);
-	if(d > maxForce)
-		acceleration *= maxForce/d;
-	
 	velocity += acceleration;
 
 	float speed = length(velocity);
@@ -47,7 +43,7 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 
 vec3 Boid::seperation(vector<Boid>::iterator start, vector<Boid>::iterator end)
 {
-	float desiredseparation = 0.5;
+	float desiredseparation = 3;
 	vec3 steer = vec3(0, 0, 0);
 	int count = 0;
 	// For every boid in the system, check if it's too close
@@ -170,37 +166,26 @@ vec3 Boid::seek(vec3 target) {
 
 vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 {
-	short minmax = 0;
-	short xyz = -1;
-	float prefered = 5;
-	float d = prefered;
-	vec3 minBound = position - min;
-	vec3 maxBound = max - position;
-	//cout << "minBound: " << minBound[0] << "," << minBound[1] << "," << minBound[2] << endl;
+	float treshold = 5;
+	vec3 minDists = position - min;
+	vec3 maxDists = max - position;
+	vec3 steer = vec3(0,0,0);
 	for(int i = 0 ; i < 3 ; i++)
 	{
-		if(minBound[i] < d)
+		if(minDists[i] < treshold && minDists[i] < maxDists[i])
 		{
-			//cout << "its set" << endl;
-			d = minBound[i];
-			minmax = -1;
-			xyz = i;	
+			//cout << "minDists: " << minDists[0] << "," << minDists[1] << "," << minDists[2] << endl;
+			steer[i] = treshold - minDists[i];
 		}
-		if(maxBound[i] < d)
+		
+		else if(maxDists[i] < treshold)
 		{
-			//cout << "its set" << endl;
-			d = maxBound[i];
-			minmax = 1;
-			xyz = i;
+			//cout << "maxDists: " << maxDists[0] << "," << maxDists[1] << "," << maxDists[2] << endl;
+			steer[i] = maxDists[i] - treshold;
 		}
 	}
 
-	if(minmax == 0)
-		return vec3(0,0,0);
-
-	vec3 steer = vec3(0,0,0);
-	steer[xyz] = -minmax;
-	// As long as the vector is greater than 0
+	float d = length(steer);
 	if ( d > 0) 
 	{
 		// First two line(s of code below could be condensed with new PVector setMag() method
@@ -208,6 +193,8 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 		// steer.setMag(maxspeed);
 
 		// Implement Reynolds: Steering = Desired - Velocity
+		
+		steer /= d;
 		steer *= maxSpeed;
 		steer -= velocity;
 		d = length(steer);
@@ -219,5 +206,4 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 	//cout << "max: " << max[0] << "," << max[1] << "," << max[2] << endl;
     //cout << "position: " << position[0] << "," << position[1] << "," << position[2] << endl;
     return steer;
-
 }
