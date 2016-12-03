@@ -16,11 +16,11 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 
 	// Calculate serparation and add to acceleration (multiply weight)
 	vec3 sep = seperation(start, end);
-	sep *= 3;
+	sep *= 2;
 	acceleration += sep;
 	// Calculate alignment and add to acceleration (multiply weight)
 	vec3 ali = align(start,end);
-	ali *= 1;
+	ali *= 1.5;
 	acceleration += ali;
 	// Calculate cohesion and add to acceleration (multiply weight)
 	vec3 coh = cohesion(start,end);
@@ -28,16 +28,14 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 	acceleration += coh;
 
 	vec3 wav = wallAvoidance(boundMin, boundMax);
-	wav *= 4;
+	wav *= 3;
 	acceleration += wav;
 	//cout << "wav: " << wav[0] << "," << wav[1] << "," << wav[2] << endl;
 
 	velocity += acceleration;
 
-	float speed = length(velocity);
-	if(speed < minSpeed)
-		velocity *= minSpeed/speed;
-	
+	velocity.y = (velocity.y>0) ? std::min(velocity.y, maxSpeed/3):std::max(velocity.y, -maxSpeed/3);
+
 	position += velocity;
 }
 
@@ -166,7 +164,7 @@ vec3 Boid::seek(vec3 target) {
 
 vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 {
-	float treshold = 5;
+	float treshold = 2;
 	vec3 minDists = position - min;
 	vec3 maxDists = max - position;
 	vec3 steer = vec3(0,0,0);

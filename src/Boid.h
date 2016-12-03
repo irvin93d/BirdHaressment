@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>

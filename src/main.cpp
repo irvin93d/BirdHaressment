@@ -38,8 +38,8 @@ shared_ptr<Shape> bunny;
 shared_ptr<Shape> sphere;
 shared_ptr<Shape> cylinder;
 shared_ptr<Shape> cone;
-vec3 eye = vec3(0,0,2);
-vec3 look = vec3(0,0,-10);
+vec3 eye = vec3(1,0,-0.4);
+vec3 look = normalize(vec3(0,0,0) - eye) + eye;
 vec3 up = vec3(0,1,0);
 vec3 lightPos = vec3(20,15,0);
 vector<float> bunnyPlacement;
@@ -96,6 +96,18 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 		else if(action == GLFW_RELEASE)
 			eyeMov.x--;
 	}
+	if(key == GLFW_KEY_E) {
+		if(action == GLFW_PRESS)
+			eyeMov.y++;
+		else if(action == GLFW_RELEASE)
+			eyeMov.y--;
+	}
+	if(key == GLFW_KEY_Q) {
+		if(action == GLFW_PRESS)
+			eyeMov.y--;
+		else if(action == GLFW_RELEASE)
+			eyeMov.y++;
+	}
 	if(key == GLFW_KEY_KP_ADD){
 		flock->addBoid(
 			Boid(
@@ -111,11 +123,9 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 
 static void updateEyePosition()
 {
-	float moveSpeed = 0.15;
-	float rollSpeed = 0.05;
+	float moveSpeed = 0.05;
 	vec3 w = normalize(eye - look);
 	vec3 u = normalize(cross(up, w));
-	vec3 v = normalize(cross(w, u));
 
 	w *= moveSpeed*eyeMov.z;
 	eye -= vec3(w[0], 0, w[2]);
@@ -124,6 +134,9 @@ static void updateEyePosition()
 	u *= moveSpeed*eyeMov.x;
 	eye += u;
 	look += u;
+
+	eye += vec3(0,moveSpeed * eyeMov.y,0);
+	look += vec3(0,moveSpeed * eyeMov.y,0);
 }
 
 static void mouse_callback(GLFWwindow *window, int button, int action, int mods)
@@ -140,7 +153,7 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	
-	float moveSpeed = 0.01;
+	float moveSpeed = 0.002;
 	vec3 w = normalize(eye - look);
 	vec3 u = normalize(cross(up, w));
 	vec3 v = normalize(cross(w, u));
@@ -190,7 +203,7 @@ static void init()
 	half_pyramid->init();
 
 	sphere = make_shared<Shape>();
-	sphere->loadMesh(RESOURCE_DIR + "cube.obj");
+	sphere->loadMesh(RESOURCE_DIR + "sphere.obj");
 	sphere->resize();
 	sphere->init();
 
@@ -217,17 +230,18 @@ static void init()
 	flock = new Flock();
 
 	
-	for(int i = 0 ; i < 250 ; i++){
+	for(int i = 0 ; i < 100 ; i++){
 		flock->addBoid(
 			Boid(
-					vec3(randFloat(-7,7),randFloat(2,16),randFloat(-7,7)),
+					vec3(randFloat(-7,7),randFloat(6,20),randFloat(-7,7)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
 	}
 	
-	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.002,0.001,0.003)));
-	//flock->addBoid(Boid(vec3(1,0,0),vec3(0,0,0)));
+	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.0,0.0,0)));
+	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.001,0.001,-0.001)));
+	//flock->addBoid(Boid(vec3(1,1,1),vec3(0.001,0.001,-0.001)));
 }
 
 static void render()
@@ -246,7 +260,7 @@ static void render()
 
 	// Create the matrix stacks
 	auto P = make_shared<MatrixStack>();
-	mat4 V = glm::lookAt(eye, look, up);;
+	mat4 V = glm::lookAt(eye, look, up);
 	auto M = make_shared<MatrixStack>();
 	
 	// Apply perspective projection.
@@ -283,17 +297,58 @@ static void render()
 		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
 		glUniform1f(phung->getUniform("shine"),10);
 		
+		static float t = 0 ;
+		static float td = -0.01;
 		flock->run();
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
 			M->pushMatrix();
 				M->translate(it->position);
 				M->scale(vec3(0.1,0.1,0.1));
-	  			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-	  			sphere->draw(phung);
+				vec3 velocity = normalize(it->velocity);
+				if(velocity.z > 0 )
+					M->rotate(asin(velocity.x),vec3(0,1,0));
+				else
+					M->rotate(M_PI-asin(velocity.x),vec3(0,1,0));
+				M->rotate(-asin(velocity.y),vec3(1,0,0));
+				M->pushMatrix();
+					M->translate(vec3(0,-0.2,3));
+					M->scale(vec3(0.5,0.5,0.5));
+					M->rotate(0.2,vec3(1,0,0));
+					M->pushMatrix();
+						M->translate(vec3(0,0,1));
+						M->scale(vec3(0.5,0.5,0.5));
+						M->pushMatrix();
+							M->rotate(M_PI, vec3(0,0,1));
+							M->rotate(t, vec3(1,0,0));
+							M->scale(vec3(1,0.5,1));
+							M->translate(vec3(0,1,1));
+							glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+							half_pyramid->draw(phung);
+						M->popMatrix();
+						
+						M->rotate(t, vec3(1,0,0));
+						M->scale(vec3(1,0.5,1));
+						M->translate(vec3(0,1,1));
+						glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+						half_pyramid->draw(phung);
+					M->popMatrix();
+
+					M->translate(vec3(0,0,-0.9));
+					M->scale(vec3(1,1.2,2));
+					glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+					sphere->draw(phung);
+				M->popMatrix();
+
+				M->scale(vec3(0.7,0.7,2.5));
+				glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+				sphere->draw(phung);
 			M->popMatrix();
 		}
 
+		t += td;
+		if(t > 0 || t < -0.5)
+			td *= -1;
 	phung->unbind();
 
 	// Pop matrix stacks.
