@@ -15,6 +15,7 @@
 #include "MatrixStack.h"
 #include "Shape.h"
 #include "Flock.h"
+#include "Texture.h"
 
 
 // value_ptr for glm
@@ -46,6 +47,13 @@ vector<float> bunnyPlacement;
 vector<float> treePlacement;
 Flock* flock;
 vec3 eyeMov = vec3(0,0,0);	
+
+shared_ptr<Program> prog2;
+Texture texture2;
+GLint h_texture2;
+
+int g_GiboLen;
+GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
 
 int randInt(int min, int max) {
 	float range = max - min;
@@ -176,7 +184,63 @@ static void resize_callback(GLFWwindow *window, int width, int height) {
    glViewport(0, 0, width, height);
 }
 
+/* code to define the ground plane */
+static void initGeom() {
 
+	float g_groundSize = 20;
+	float g_groundY = -1.5;
+
+	// A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
+	float GrndPos[] = {
+		-g_groundSize, g_groundY, -g_groundSize,
+		-g_groundSize, g_groundY,  g_groundSize,
+		g_groundSize, g_groundY,  g_groundSize,
+		g_groundSize, g_groundY, -g_groundSize
+	};
+
+	float GrndNorm[] = {
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0
+	};
+
+
+	static GLfloat GrndTex[] = {
+		0, 0, // back
+		0, 6,
+		6, 6,
+		6, 0
+	};
+
+	unsigned short idx[] = {0, 1, 2, 0, 2, 3};
+
+
+	GLuint VertexArrayID;
+	//generate the VAO
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	g_GiboLen = 6;
+	glGenBuffers(1, &GrndBuffObj);
+	glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GrndPos), GrndPos, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &GrndNorBuffObj);
+	glBindBuffer(GL_ARRAY_BUFFER, GrndNorBuffObj);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GrndNorm), GrndNorm, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &GrndTexBuffObj);
+	glBindBuffer(GL_ARRAY_BUFFER, GrndTexBuffObj);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GrndTex), GrndTex, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &GIndxBuffObj);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GIndxBuffObj);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
+
+}
 
 static void init()
 {
@@ -207,8 +271,6 @@ static void init()
 	sphere->resize();
 	sphere->init();
 
-	// inittisdjas
-	
 	// Init shaders
 
 	phung = make_shared<Program>();
@@ -229,7 +291,6 @@ static void init()
 
 	flock = new Flock();
 
-	
 	for(int i = 0 ; i < 100 ; i++){
 		flock->addBoid(
 			Boid(
@@ -238,10 +299,27 @@ static void init()
 				)
 		);
 	}
-	
-	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.0,0.0,0)));
-	//flock->addBoid(Boid(vec3(0,0,0),vec3(0.001,0.001,-0.001)));
-	//flock->addBoid(Boid(vec3(1,1,1),vec3(0.001,0.001,-0.001)));
+
+	prog2 = make_shared<Program>();
+	prog2->setVerbose(true);
+	prog2->setShaderNames(RESOURCE_DIR + "tex_vert.glsl", RESOURCE_DIR + "tex_frag2.glsl");
+	prog2->init();
+
+	texture2.setFilename(RESOURCE_DIR + "grass.bmp");
+
+	texture2.setUnit(2);
+	texture2.setName("Texture2");
+	texture2.init();
+
+	prog2->addUniform("P");
+	prog2->addUniform("V");
+	prog2->addUniform("M");
+	prog2->addUniform("Texture2");
+	prog2->addAttribute("vertPos");
+	prog2->addAttribute("vertNor");
+	prog2->addAttribute("vertTex");
+	prog2->addTexture(&texture2);
+
 }
 
 static void render()
@@ -351,6 +429,33 @@ static void render()
 			td *= -1;
 	phung->unbind();
 
+
+	prog2->bind();
+		glUniformMatrix4fv(prog2->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(prog2->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniformMatrix4fv(prog2->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, GrndNorBuffObj);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, GrndTexBuffObj);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+		// draw!
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GIndxBuffObj);
+		glDrawElements(GL_TRIANGLES, g_GiboLen, GL_UNSIGNED_SHORT, 0);
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+	prog2->unbind();
+
 	// Pop matrix stacks.
 	P->popMatrix();
 
@@ -358,6 +463,7 @@ static void render()
 	lightMov *= 0.1;
 	lightPos += lightMov;
 }
+
 
 int main(int argc, char **argv)
 {
@@ -411,6 +517,7 @@ int main(int argc, char **argv)
 
 	// Initialize scene. Note geometry initialized in init now
 	init();
+	initGeom();
 
 	// Loop until the user closes the window.
 	while(!glfwWindowShouldClose(window)) {
