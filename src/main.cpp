@@ -280,7 +280,7 @@ static void init()
 
 	flock = new Flock();
 
-	for(int i = 0 ; i < 100 ; i++){
+	for(int i = 0 ; i < 150 ; i++){
 		flock->addBoid(
 			Boid(
 					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
@@ -382,9 +382,9 @@ static void render()
 		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
-		glUniform3f(phung->getUniform("MatAmb"),0.5,0.5,0.5);
-		glUniform3f(phung->getUniform("MatDif"),0.3,0.3,0.3);
-		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
+		glUniform3f(phung->getUniform("MatAmb"),0.0613, 0.5735, 0.025);
+		glUniform3f(phung->getUniform("MatDif"),0.2038, 0.87048, 0.0828);
+		glUniform3f(phung->getUniform("MatSpec"),0.057, 0.8376, 0.08601);
 		glUniform1f(phung->getUniform("shine"),10);
 		
 		static float t = 0 ;

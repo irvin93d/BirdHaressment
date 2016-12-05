@@ -10,7 +10,7 @@ Boid::Boid(vec3 p, vec3 v)
 	maxForce = 0.0015;
 }
 
-void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 boundMin, vec3 boundMax)
+void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 boundMin, vec3 boundMax, Bullets* bullets)
 {
 	acceleration = vec3(0,0,0);
 
@@ -30,6 +30,10 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 	vec3 wav = wallAvoidance(boundMin, boundMax);
 	wav *= 3;
 	acceleration += wav;
+
+	vec3 bav = bulletAvoidance(bullets);
+	bav *= 8;
+	acceleration += bav;
 
 	velocity += acceleration;
 
@@ -60,16 +64,10 @@ vec3 Boid::seperation(vector<Boid>::iterator start, vector<Boid>::iterator end)
 	if (count > 0)
 		steer /= (float) count;
     
-	//cout << steer.x << endl;
 	// As long as the vector is greater than 0
 	float d = length(steer);
 	if ( d > 0) 
 	{
-		// First two line(s of code below could be condensed with new PVector setMag() method
-		// Not using this method until Processing.js catches up
-		// steer.setMag(maxspeed);
-
-		// Implement Reynolds: Steering = Desired - Velocity
 		steer /= d;
 		steer *= maxSpeed;
 		steer -= velocity;
@@ -121,7 +119,7 @@ vec3 Boid::align(vector<Boid>::iterator start, vector<Boid>::iterator end)
 
 // For the average position (i.e. center) of all nearby boids, calculate steering vector towards that position
 vec3 Boid::cohesion (vector<Boid>::iterator start, vector<Boid>::iterator end) {
-	float neighbordist = 5;
+	float neighbordist = 15;
 	vec3 sum = vec3(0,0,0);   // Start with empty vector to accumulate all positions
 	int count = 0;
 	for (vector<Boid>::iterator it = start ; it != end ; ++it)
@@ -149,10 +147,6 @@ vec3 Boid::seek(vec3 target) {
 	desired /= length(desired);
 	desired *= maxSpeed;
 
-	// Above two lines of code below could be condensed with new PVector setMag() method
-	// Not using this method until Processing.js catches up
-	// desired.setMag(maxspeed);
-
 	// Steering = Desired minus Velocity
 	vec3 steer = desired - velocity;
 	float d = length(steer);	
@@ -179,12 +173,6 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 	float d = length(steer);
 	if ( d > 0) 
 	{
-		// First two line(s of code below could be condensed with new PVector setMag() method
-		// Not using this method until Processing.js catches up
-		// steer.setMag(maxspeed);
-
-		// Implement Reynolds: Steering = Desired - Velocity
-		
 		steer /= d;
 		steer *= maxSpeed;
 		steer -= velocity;
@@ -192,5 +180,30 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 		if(d > maxForce)
 			steer *= maxForce/d;
 	}
-    return steer;
+	return steer;
+}
+
+vec3 Boid::bulletAvoidance(Bullets* bullets){
+
+	float treshold = 10;
+	vec3 steer = vec3(0,0,0);
+	for(vector<Bullet>::iterator it = bullets->bullets.begin() ; it != bullets->bullets.end() ; ++it){
+		vec3 toBullet = position - it->pos;
+		float d = length(toBullet);
+		if(d < treshold){
+			steer += d*normalize(cross(it->dir,cross(toBullet, it->dir)));
+		}
+	}
+
+	float d = length(steer);
+	if ( d > 0) 
+	{
+		steer /= d;
+		steer *= maxSpeed;
+		steer -= velocity;
+		d = length(steer);
+		if(d > maxForce)
+			steer *= maxForce/d;
+	}
+	return steer;
 }

@@ -20,6 +20,6 @@ void Flock::removeBoid()
 void Flock::run()
 {
 	for (vector<Boid>::iterator it = boids.begin() ; it != boids.end() ; ++it) {
-		it->run(boids.begin(), boids.end(), boundMin, boundMax);
+		it->run(boids.begin(), boids.end(), boundMin, boundMax, bullets);
 	}
 }
