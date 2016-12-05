@@ -30,7 +30,6 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 	vec3 wav = wallAvoidance(boundMin, boundMax);
 	wav *= 3;
 	acceleration += wav;
-	//cout << "wav: " << wav[0] << "," << wav[1] << "," << wav[2] << endl;
 
 	velocity += acceleration;
 
@@ -171,16 +170,10 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 	for(int i = 0 ; i < 3 ; i++)
 	{
 		if(minDists[i] < treshold && minDists[i] < maxDists[i])
-		{
-			//cout << "minDists: " << minDists[0] << "," << minDists[1] << "," << minDists[2] << endl;
 			steer[i] = treshold - minDists[i];
-		}
 		
 		else if(maxDists[i] < treshold)
-		{
-			//cout << "maxDists: " << maxDists[0] << "," << maxDists[1] << "," << maxDists[2] << endl;
 			steer[i] = maxDists[i] - treshold;
-		}
 	}
 
 	float d = length(steer);
@@ -199,9 +192,5 @@ vec3 Boid::wallAvoidance(vec3 min, vec3 max)
 		if(d > maxForce)
 			steer *= maxForce/d;
 	}
-	//cout << "steer: " << steer[0] << "," << steer[1] << "," << steer[2] << endl;
-	//cout << "min: " << min[0] << "," << min[1] << "," << min[2] << endl;
-	//cout << "max: " << max[0] << "," << max[1] << "," << max[2] << endl;
-    //cout << "position: " << position[0] << "," << position[1] << "," << position[2] << endl;
     return steer;
 }

@@ -3,9 +3,7 @@
 */
 #include <iostream>
 #define GLEW_STATIC
-#define WORLD_SIZE 15
-#define WORLD_TILE_SIZE 8
-#define OBJECT_SPREAD 30
+#define WORLD_SIZE 30
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -16,7 +14,7 @@
 #include "Shape.h"
 #include "Flock.h"
 #include "Texture.h"
-
+#include "Bullets.h"
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
@@ -31,31 +29,41 @@ using namespace glm;
 
 GLFWwindow *window; // Main application window
 string RESOURCE_DIR = ""; // Where the resources are loaded from
-shared_ptr<Program> phung;
-shared_ptr<Program> groundShad;
-shared_ptr<Shape> half_pyramid;
-shared_ptr<Shape> cube;
-shared_ptr<Shape> bunny;
-shared_ptr<Shape> sphere;
-shared_ptr<Shape> cylinder;
-shared_ptr<Shape> cone;
-vec3 eye = vec3(1,0,-0.4);
-vec3 look = normalize(vec3(0,0,0) - eye) + eye;
-vec3 up = vec3(0,1,0);
-vec3 lightPos = vec3(20,15,0);
-vector<float> bunnyPlacement;
-vector<float> treePlacement;
-Flock* flock;
-vec3 eyeMov = vec3(0,0,0);	
 
-shared_ptr<Program> prog2;
+// Shaders
+shared_ptr<Program> phung;
+shared_ptr<Program> grndShader;
+
+
+// Light and camera
+vec3 eye = vec3(1,2,-0.4);
+vec3 look = normalize(vec3(0,2,0) - eye) + eye; // Make sure eye to look point has length 1
+vec3 up = vec3(0,1,0);
+vec3 eyeMov = vec3(0,0,0); // set flags for smooth camera movement
+vec3 lightPos = vec3(20,15,0);
+
+// Objects
+shared_ptr<Shape> half_pyramid;
+shared_ptr<Shape> sphere;
+shared_ptr<Shape> cone;
+
+// Object handlers
+Flock* flock;
+Bullets* bullets;
+
+// Ground stuff
 Texture texture2;
 GLint h_texture2;
-
 int g_GiboLen;
 GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
 
 int randInt(int min, int max) {
+	float range = max - min;
+	float num = range * rand() / RAND_MAX;
+	return (num + min);
+}
+
+float randFloat(float min, float max) {
 	float range = max - min;
 	float num = range * rand() / RAND_MAX;
 	return (num + min);
@@ -66,25 +74,16 @@ static void error_callback(int error, const char *description)
 	cerr << description << endl;
 }
 
-float randFloat(float min, float max) {
-	float range = max - min;
-	float num = range * rand() / RAND_MAX;
-	return (num + min);
-}
-
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
-	
+	}	
 	if(key == GLFW_KEY_W) {
 		if(action == GLFW_PRESS)
 			eyeMov.z++;
 		else if(action == GLFW_RELEASE)
-		{
 			eyeMov.z--;
-		}
 	}
 	if(key == GLFW_KEY_S) {
 		if(action == GLFW_PRESS)
@@ -119,7 +118,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	if(key == GLFW_KEY_KP_ADD){
 		flock->addBoid(
 			Boid(
-					vec3(randFloat(-7,7),randFloat(2,16),randFloat(-7,7)),
+					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
@@ -129,7 +128,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	}
 }
 
-static void updateEyePosition()
+static void updateCamera()
 {
 	float moveSpeed = 0.05;
 	vec3 w = normalize(eye - look);
@@ -149,10 +148,10 @@ static void updateEyePosition()
 
 static void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 {
-   	double posX, posY;
-   	if (action == GLFW_PRESS) {
-      glfwGetCursorPos(window, &posX, &posY);
-      cout << "Pos X " << posX <<  " Pos Y " << posY << endl;
+	double posX, posY;
+	if (action == GLFW_PRESS) {
+		glfwGetCursorPos(window, &posX, &posY);
+		bullets->addBullet(eye, normalize(look - eye));
 	}
 }
 
@@ -187,8 +186,8 @@ static void resize_callback(GLFWwindow *window, int width, int height) {
 /* code to define the ground plane */
 static void initGeom() {
 
-	float g_groundSize = 20;
-	float g_groundY = -1.5;
+	float g_groundSize = WORLD_SIZE;
+	float g_groundY = 0;
 
 	// A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
 	float GrndPos[] = {
@@ -207,7 +206,6 @@ static void initGeom() {
 		0, 1, 0
 	};
 
-
 	static GLfloat GrndTex[] = {
 		0, 0, // back
 		0, 6,
@@ -216,7 +214,6 @@ static void initGeom() {
 	};
 
 	unsigned short idx[] = {0, 1, 2, 0, 2, 3};
-
 
 	GLuint VertexArrayID;
 	//generate the VAO
@@ -239,7 +236,6 @@ static void initGeom() {
 	glGenBuffers(1, &GIndxBuffObj);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GIndxBuffObj);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
 }
 
 static void init()
@@ -255,12 +251,6 @@ static void init()
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	// Initialize mesh.
-	cube = make_shared<Shape>();
-	cube->loadMesh(RESOURCE_DIR + "cube.obj");
-	cube->resize();
-	cube->init();
-
 	half_pyramid = make_shared<Shape>();
 	half_pyramid->loadMesh(RESOURCE_DIR + "half_pyramid.obj");
 	half_pyramid->resize();
@@ -272,7 +262,6 @@ static void init()
 	sphere->init();
 
 	// Init shaders
-
 	phung = make_shared<Program>();
 	phung->setVerbose(true);
 	phung->setShaderNames(RESOURCE_DIR + "phung_vert.glsl", RESOURCE_DIR + "phung_frag.glsl");
@@ -294,16 +283,19 @@ static void init()
 	for(int i = 0 ; i < 100 ; i++){
 		flock->addBoid(
 			Boid(
-					vec3(randFloat(-7,7),randFloat(6,20),randFloat(-7,7)),
+					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
 				)
 		);
 	}
 
-	prog2 = make_shared<Program>();
-	prog2->setVerbose(true);
-	prog2->setShaderNames(RESOURCE_DIR + "tex_vert.glsl", RESOURCE_DIR + "tex_frag2.glsl");
-	prog2->init();
+	bullets = new Bullets();
+	flock->bullets = bullets;
+
+	grndShader = make_shared<Program>();
+	grndShader->setVerbose(true);
+	grndShader->setShaderNames(RESOURCE_DIR + "tex_vert.glsl", RESOURCE_DIR + "tex_frag2.glsl");
+	grndShader->init();
 
 	texture2.setFilename(RESOURCE_DIR + "grass.bmp");
 
@@ -311,20 +303,20 @@ static void init()
 	texture2.setName("Texture2");
 	texture2.init();
 
-	prog2->addUniform("P");
-	prog2->addUniform("V");
-	prog2->addUniform("M");
-	prog2->addUniform("Texture2");
-	prog2->addAttribute("vertPos");
-	prog2->addAttribute("vertNor");
-	prog2->addAttribute("vertTex");
-	prog2->addTexture(&texture2);
+	grndShader->addUniform("P");
+	grndShader->addUniform("V");
+	grndShader->addUniform("M");
+	grndShader->addUniform("Texture2");
+	grndShader->addAttribute("vertPos");
+	grndShader->addAttribute("vertNor");
+	grndShader->addAttribute("vertTex");
+	grndShader->addTexture(&texture2);
 
 }
 
 static void render()
 {
-	updateEyePosition();
+	updateCamera();
 	// Get current frame buffer size.
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -355,7 +347,6 @@ static void render()
 			glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
 			glUniform3f(phung->getUniform("MatAmb"),1,2,2);
 			glUniform3f(phung->getUniform("MatDif"),0,0,0);
-			glUniform3f(phung->getUniform("MatSpec"), 0,0,0);
 			glUniform1f(phung->getUniform("shine"),1);
 				  		
 			M->translate(vec3(lightPos[0], lightPos[1], lightPos[2]));
@@ -366,6 +357,27 @@ static void render()
 		M->popMatrix();
 	phung->unbind();
 	
+	bullets->run();
+
+	phung->bind();
+		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+		glUniform3f(phung->getUniform("MatAmb"),0.2,0.2,0.2);
+		glUniform3f(phung->getUniform("MatDif"),0.2,0.2,0.2);
+		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
+		glUniform1f(phung->getUniform("shine"),10);
+		for(vector<Bullet>::iterator it = bullets->bullets.begin() ; it != bullets->bullets.end() ; ++it)
+		{
+			M->pushMatrix();
+				M->translate(it->pos);
+				M->scale(vec3(0.1,0.1,0.1));
+				glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+				sphere->draw(phung);
+			M->popMatrix();
+		}
+	phung->unbind();
+
 	phung->bind();
 		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
@@ -430,10 +442,10 @@ static void render()
 	phung->unbind();
 
 
-	prog2->bind();
-		glUniformMatrix4fv(prog2->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-		glUniformMatrix4fv(prog2->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-		glUniformMatrix4fv(prog2->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+	grndShader->bind();
+		glUniformMatrix4fv(grndShader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(grndShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniformMatrix4fv(grndShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
@@ -454,7 +466,7 @@ static void render()
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
-	prog2->unbind();
+	grndShader->unbind();
 
 	// Pop matrix stacks.
 	P->popMatrix();

@@ -28,7 +28,7 @@ private:
 	unsigned posBufID;
 	unsigned norBufID;
 	unsigned texBufID;
-   unsigned vaoID;
+	unsigned vaoID;
 };
 
 #endif

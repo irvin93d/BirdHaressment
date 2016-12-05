@@ -4,8 +4,6 @@ using namespace std;
 
 Flock::Flock() 
 {
-	//srand(time(NULL));
-	// TODO: init boundaries
 }
 
 void Flock::addBoid(Boid b)

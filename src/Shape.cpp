@@ -15,7 +15,7 @@ Shape::Shape() :
 	posBufID(0),
 	norBufID(0),
 	texBufID(0), 
-   vaoID(0)
+	vaoID(0)
 {
 }
 
@@ -86,17 +86,17 @@ void Shape::computeNormals(){
 }
 
 void Shape::resize() {
-  float minX, minY, minZ;
-   float maxX, maxY, maxZ;
-   float scaleX, scaleY, scaleZ;
-   float shiftX, shiftY, shiftZ;
-   float epsilon = 0.001;
+	float minX, minY, minZ;
+	float maxX, maxY, maxZ;
+	float scaleX, scaleY, scaleZ;
+	float shiftX, shiftY, shiftZ;
+	float epsilon = 0.001;
 
-   minX = minY = minZ = 1.1754E+38F;
-   maxX = maxY = maxZ = -1.1754E+38F;
+	minX = minY = minZ = 1.1754E+38F;
+	maxX = maxY = maxZ = -1.1754E+38F;
 
-   //Go through all vertices to determine min and max of each dimension
-   for (size_t v = 0; v < posBuf.size() / 3; v++) {
+	//Go through all vertices to determine min and max of each dimension
+	for (size_t v = 0; v < posBuf.size() / 3; v++) {
 		if(posBuf[3*v+0] < minX) minX = posBuf[3*v+0];
 		if(posBuf[3*v+0] > maxX) maxX = posBuf[3*v+0];
 
@@ -108,27 +108,27 @@ void Shape::resize() {
 	}
 
 	//From min and max compute necessary scale and shift for each dimension
-   float maxExtent, xExtent, yExtent, zExtent;
-   xExtent = maxX-minX;
-   yExtent = maxY-minY;
-   zExtent = maxZ-minZ;
-   if (xExtent >= yExtent && xExtent >= zExtent) {
-      maxExtent = xExtent;
-   }
-   if (yExtent >= xExtent && yExtent >= zExtent) {
-      maxExtent = yExtent;
-   }
-   if (zExtent >= xExtent && zExtent >= yExtent) {
-      maxExtent = zExtent;
-   }
-   scaleX = 2.0 /maxExtent;
-   shiftX = minX + (xExtent/ 2.0);
-   scaleY = 2.0 / maxExtent;
-   shiftY = minY + (yExtent / 2.0);
-   scaleZ = 2.0/ maxExtent;
-   shiftZ = minZ + (zExtent)/2.0;
+	float maxExtent, xExtent, yExtent, zExtent;
+	xExtent = maxX-minX;
+	yExtent = maxY-minY;
+	zExtent = maxZ-minZ;
+	if (xExtent >= yExtent && xExtent >= zExtent) {
+		maxExtent = xExtent;
+	}
+	if (yExtent >= xExtent && yExtent >= zExtent) {
+		maxExtent = yExtent;
+	}
+	if (zExtent >= xExtent && zExtent >= yExtent) {
+		maxExtent = zExtent;
+	}
+	scaleX = 2.0 /maxExtent;
+	shiftX = minX + (xExtent/ 2.0);
+	scaleY = 2.0 / maxExtent;
+	shiftY = minY + (yExtent / 2.0);
+	scaleZ = 2.0/ maxExtent;
+	shiftZ = minZ + (zExtent)/2.0;
 
-   //Go through all verticies shift and scale them
+	//Go through all verticies shift and scale them
 	for (size_t v = 0; v < posBuf.size() / 3; v++) {
 		posBuf[3*v+0] = (posBuf[3*v+0] - shiftX) * scaleX;
 		assert(posBuf[3*v+0] >= -1.0 - epsilon);
@@ -144,9 +144,9 @@ void Shape::resize() {
 
 void Shape::init()
 {
-   // Initialize the vertex array object
-   glGenVertexArrays(1, &vaoID);
-   glBindVertexArray(vaoID);
+	// Initialize the vertex array object
+	glGenVertexArrays(1, &vaoID);
+	glBindVertexArray(vaoID);
 
 	// Send the position array to the GPU
 	glGenBuffers(1, &posBufID);
@@ -188,7 +188,7 @@ void Shape::draw(const shared_ptr<Program> prog) const
 	int h_pos, h_nor, h_tex;
 	h_pos = h_nor = h_tex = -1;
 
-   glBindVertexArray(vaoID);
+	glBindVertexArray(vaoID);
 	// Bind position buffer
 	h_pos = prog->getAttribute("vertPos");
 	GLSL::enableVertexAttribArray(h_pos);

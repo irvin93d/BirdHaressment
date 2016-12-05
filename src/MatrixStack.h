@@ -25,17 +25,17 @@ class MatrixStack {
 public:
 
    MatrixStack();   
-	virtual ~MatrixStack();
+   virtual ~MatrixStack();
 
    // Copies the current matrix and adds it to the top of the stack
    void pushMatrix();   
    // Removes the top of the stack and sets the current matrix to be the matrix that is now on top
-	 void popMatrix();
+   void popMatrix();
    //  Sets the top matrix to be the identity
    void loadIdentity();
    // glMultMatrix(): Right multiplies the top matrix   
-	void multMatrix(const mat4 &matrix);
-  
+   void multMatrix(const mat4 &matrix);
+
    // Right multiplies the top matrix by a translation matrix
    void translate(const vec3 &offset);
    // Right multiplies the top matrix by a scaling matrix
