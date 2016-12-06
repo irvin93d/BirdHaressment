@@ -36,7 +36,7 @@ shared_ptr<Program> grndShader;
 
 
 // Light and camera
-vec3 eye = vec3(1,2,-0.4);
+vec3 eye = vec3(0,2,-2);
 vec3 look = normalize(vec3(0,2,0) - eye) + eye; // Make sure eye to look point has length 1
 vec3 up = vec3(0,1,0);
 vec3 eyeMov = vec3(0,0,0); // set flags for smooth camera movement
@@ -45,6 +45,7 @@ vec3 lightPos = vec3(20,15,0);
 // Objects
 shared_ptr<Shape> half_pyramid;
 shared_ptr<Shape> sphere;
+shared_ptr<Shape> cube;
 shared_ptr<Shape> cone;
 
 // Object handlers
@@ -261,6 +262,11 @@ static void init()
 	sphere->resize();
 	sphere->init();
 
+	cube = make_shared<Shape>();
+	cube->loadMesh(RESOURCE_DIR + "cube.obj");
+	cube->resize();
+	cube->init();
+
 	// Init shaders
 	phung = make_shared<Program>();
 	phung->setVerbose(true);
@@ -280,7 +286,7 @@ static void init()
 
 	flock = new Flock();
 
-	for(int i = 0 ; i < 150 ; i++){
+	for(int i = 0 ; i < 110 ; i++){
 		flock->addBoid(
 			Boid(
 					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
@@ -289,6 +295,8 @@ static void init()
 		);
 	}
 
+
+	//flock->addBoid(Boid(vec3(0,2,0),vec3(0.0001,0,0)));
 	bullets = new Bullets();
 	flock->bullets = bullets;
 
@@ -388,48 +396,92 @@ static void render()
 		glUniform1f(phung->getUniform("shine"),10);
 		
 		static float t = 0 ;
-		static float td = -0.01;
+		static float td = -0.2;
 		flock->run();
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
 			M->pushMatrix();
-				M->translate(it->position);
+				// position world
+				M->translate(it->position); 
+				// total size
 				M->scale(vec3(0.1,0.1,0.1));
-				vec3 velocity = normalize(it->velocity);
+				// rotation
+				vec3 velocity = normalize(it->velocity); 
 				if(velocity.z > 0 )
 					M->rotate(asin(velocity.x),vec3(0,1,0));
 				else
 					M->rotate(M_PI-asin(velocity.x),vec3(0,1,0));
 				M->rotate(-asin(velocity.y),vec3(1,0,0));
+				
+				// actual body transformation and drawing comes below
 				M->pushMatrix();
+					// head below
 					M->translate(vec3(0,-0.2,3));
 					M->scale(vec3(0.5,0.5,0.5));
 					M->rotate(0.2,vec3(1,0,0));
 					M->pushMatrix();
+						// mouth below
 						M->translate(vec3(0,0,1));
 						M->scale(vec3(0.5,0.5,0.5));
 						M->pushMatrix();
 							M->rotate(M_PI, vec3(0,0,1));
-							M->rotate(t, vec3(1,0,0));
+							M->rotate(t/2, vec3(1,0,0));
 							M->scale(vec3(1,0.5,1));
 							M->translate(vec3(0,1,1));
 							glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 							half_pyramid->draw(phung);
 						M->popMatrix();
 						
-						M->rotate(t, vec3(1,0,0));
+						M->rotate(t/2, vec3(1,0,0));
 						M->scale(vec3(1,0.5,1));
 						M->translate(vec3(0,1,1));
 						glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 						half_pyramid->draw(phung);
 					M->popMatrix();
 
+
 					M->translate(vec3(0,0,-0.9));
 					M->scale(vec3(1,1.2,2));
 					glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 					sphere->draw(phung);
 				M->popMatrix();
+				// Left Wing
+				M->pushMatrix();
+					M->translate(vec3(0.65,0,0.3));
+					M->rotate(t+0.5,vec3(0,0,1));
+					M->pushMatrix();
+						M->translate(vec3(1.35,0,0));
+						M->rotate(0.5, vec3(0,1,-1));
+						M->scale(vec3(0.8,0.1,0.6));
+						M->translate(vec3(1,0,0));
+						glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+						cube->draw(phung);
+					M->popMatrix();
+					M->scale(vec3(0.8,0.1,0.6));
+					M->translate(vec3(1,0,0));
+					glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+					cube->draw(phung);
+				M->popMatrix();
 
+				// Right Wing
+				M->pushMatrix();
+					M->translate(vec3(-0.65,0,.3));
+					M->rotate(t+0.5,vec3(0,0,-1));
+					M->pushMatrix();
+						M->translate(vec3(-1.35,0,0));
+						M->rotate(0.5, vec3(0,-1,1));
+						M->scale(vec3(0.8,0.1,0.6));
+						M->translate(vec3(-1,0,0));
+						glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+						cube->draw(phung);
+					M->popMatrix();
+					M->scale(vec3(0.8,0.1,0.6));
+					M->translate(vec3(-1,0,0));
+					glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+					cube->draw(phung);
+				M->popMatrix();
+
+				// body below
 				M->scale(vec3(0.7,0.7,2.5));
 				glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 				sphere->draw(phung);
@@ -437,7 +489,7 @@ static void render()
 		}
 
 		t += td;
-		if(t > 0 || t < -0.5)
+		if(t > 0 || t < -1)
 			td *= -1;
 	phung->unbind();
 

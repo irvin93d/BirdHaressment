@@ -32,7 +32,7 @@ void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 bo
 	acceleration += wav;
 
 	vec3 bav = bulletAvoidance(bullets);
-	bav *= 8;
+	bav *= 6;
 	acceleration += bav;
 
 	velocity += acceleration;
@@ -187,11 +187,11 @@ vec3 Boid::bulletAvoidance(Bullets* bullets){
 
 	float treshold = 10;
 	vec3 steer = vec3(0,0,0);
-	for(vector<Bullet>::iterator it = bullets->bullets.begin() ; it != bullets->bullets.end() ; ++it){
+	for(vector<Bullet>::iterator it = bullets->bullets.begin() ; it != bullets->bullets.end() ; ++it){	
 		vec3 toBullet = position - it->pos;
 		float d = length(toBullet);
 		if(d < treshold){
-			steer += d*normalize(cross(it->dir,cross(toBullet, it->dir)));
+			steer += (treshold - d)*normalize(cross(it->dir,cross(toBullet, it->dir)));
 		}
 	}
 
