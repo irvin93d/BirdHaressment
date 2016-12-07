@@ -302,11 +302,10 @@ static void init()
 
 	grndShader = make_shared<Program>();
 	grndShader->setVerbose(true);
-	grndShader->setShaderNames(RESOURCE_DIR + "tex_vert.glsl", RESOURCE_DIR + "tex_frag2.glsl");
+	grndShader->setShaderNames(RESOURCE_DIR + "ground_vert.glsl", RESOURCE_DIR + "ground_frag.glsl");
 	grndShader->init();
 
 	texture2.setFilename(RESOURCE_DIR + "grass.bmp");
-
 	texture2.setUnit(2);
 	texture2.setName("Texture2");
 	texture2.init();
