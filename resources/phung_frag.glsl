@@ -3,7 +3,7 @@ out vec4 color;
 in vec3 fragNor;
 in vec3 reflVec;
 in vec3 viewVec;
-in vec3 lightVec;
+in vec3 lightDir;
 
 uniform vec3 MatAmb;
 uniform vec3 MatDif;
@@ -20,7 +20,7 @@ void main()
 {
 	if(shadow == 0){
 		vec3 ambRefl = ka * MatAmb;
-		vec3 diffRefl = kd * max(0,dot(fragNor,lightVec))*MatDif;
+		vec3 diffRefl = kd * max(0,dot(fragNor,lightDir))*MatDif;
 		vec3 specRefl = ks * pow(max(0,dot(viewVec, reflVec)),shine)*MatSpec;
 		color = vec4(ambRefl+diffRefl+specRefl, 1.0);
 	}

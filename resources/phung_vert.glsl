@@ -11,14 +11,14 @@ uniform int shadow = 0;
 out vec3 fragNor;
 out vec3 reflVec;
 out vec3 viewVec;
-out vec3 lightVec;
+out vec3 lightDir;
 
 void main()
 {
 	vec3 normal = normalize(mat3(M)*vertNor);
-	lightVec = normalize(lightPos - (M*vertPos).xyz);
+	lightDir = normalize(lightPos - (M*vertPos).xyz);
 	
-	reflVec = normalize(mat3(V)*(2*dot(lightVec,normal)*normal-lightVec));
+	reflVec = normalize(mat3(V)*(2*dot(lightDir,normal)*normal-lightDir));
 
 	viewVec = normalize(-(V*M*vertPos).xyz);
 	fragNor = normal;
@@ -27,8 +27,8 @@ void main()
 		gl_Position = P * V * M * vertPos;
 	else{
 		vec4 MPos = M * vertPos;
-		float k = (0.01 - lightPos.y)/(lightVec.y);
-		gl_Position = P * V * vec4(k*(lightVec) + lightPos,1);
+		float k = (0.01 - lightPos.y)/(lightDir.y);
+		gl_Position = P * V * vec4(k*(lightDir) + lightPos,1);
 	}
 }
 

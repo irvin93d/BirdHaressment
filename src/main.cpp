@@ -34,7 +34,6 @@ string RESOURCE_DIR = ""; // Where the resources are loaded from
 shared_ptr<Program> phung;
 shared_ptr<Program> grndShader;
 
-
 // Light and camera
 vec3 eye = vec3(0,2,-2);
 vec3 look = normalize(vec3(0,2,0) - eye) + eye; // Make sure eye to look point has length 1
@@ -46,23 +45,15 @@ vec3 lightPos = vec3(20,15,0);
 shared_ptr<Shape> half_pyramid;
 shared_ptr<Shape> sphere;
 shared_ptr<Shape> cube;
-shared_ptr<Shape> cone;
 
 // Object handlers
 Flock* flock;
 Bullets* bullets;
 
 // Ground stuff
-Texture texture2;
-GLint h_texture2;
+Texture grass;
 int g_GiboLen;
 GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
-
-int randInt(int min, int max) {
-	float range = max - min;
-	float num = range * rand() / RAND_MAX;
-	return (num + min);
-}
 
 float randFloat(float min, float max) {
 	float range = max - min;
@@ -135,14 +126,17 @@ static void updateCamera()
 	vec3 w = normalize(eye - look);
 	vec3 u = normalize(cross(up, w));
 
+	// Dolly
 	w *= moveSpeed*eyeMov.z;
 	eye -= vec3(w[0], 0, w[2]);
 	look -= vec3(w[0], 0, w[2]);
 	
+	// strafe
 	u *= moveSpeed*eyeMov.x;
 	eye += u;
 	look += u;
 
+	// flyyyy
 	eye += vec3(0,moveSpeed * eyeMov.y,0);
 	look += vec3(0,moveSpeed * eyeMov.y,0);
 }
@@ -177,6 +171,7 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	if( 0.985 < phi || phi < -0.985)
 		look += v;
 	
+	// Reset pointer to middle
 	glfwSetCursorPos(window,width/2,height/2);	
 }
 
@@ -251,7 +246,13 @@ static void init()
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Init textures
+	grass.setFilename(RESOURCE_DIR + "grass.bmp");
+	grass.setUnit(2);
+	grass.setName("Texture");
+	grass.init();
 
+	// Init mesh objects
 	half_pyramid = make_shared<Shape>();
 	half_pyramid->loadMesh(RESOURCE_DIR + "half_pyramid.obj");
 	half_pyramid->resize();
@@ -266,6 +267,20 @@ static void init()
 	cube->loadMesh(RESOURCE_DIR + "cube.obj");
 	cube->resize();
 	cube->init();
+
+	// Init object handlers
+	flock = new Flock();
+	bullets = new Bullets();
+	flock->bullets = bullets;
+
+	for(int i = 0 ; i < 110 ; i++){
+		flock->addBoid(
+			Boid(
+					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
+					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
+				)
+		);
+	}
 
 	// Init shaders
 	phung = make_shared<Program>();
@@ -284,46 +299,36 @@ static void init()
 	phung->addUniform("lightPos");
 	phung->addUniform("shadow");
 
-	flock = new Flock();
-
-	for(int i = 0 ; i < 110 ; i++){
-		flock->addBoid(
-			Boid(
-					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
-					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
-				)
-		);
-	}
-
-
-	//flock->addBoid(Boid(vec3(0,2,0),vec3(0.0001,0,0)));
-	bullets = new Bullets();
-	flock->bullets = bullets;
-
 	grndShader = make_shared<Program>();
 	grndShader->setVerbose(true);
 	grndShader->setShaderNames(RESOURCE_DIR + "ground_vert.glsl", RESOURCE_DIR + "ground_frag.glsl");
 	grndShader->init();
-
-	texture2.setFilename(RESOURCE_DIR + "grass.bmp");
-	texture2.setUnit(2);
-	texture2.setName("Texture2");
-	texture2.init();
-
 	grndShader->addUniform("P");
 	grndShader->addUniform("V");
 	grndShader->addUniform("M");
-	grndShader->addUniform("Texture2");
+	grndShader->addUniform("Texture");
 	grndShader->addAttribute("vertPos");
 	grndShader->addAttribute("vertNor");
 	grndShader->addAttribute("vertTex");
-	grndShader->addTexture(&texture2);
-
+	grndShader->addTexture(&grass);
 }
 
 static void render()
 {
-	updateCamera();
+	static float t = 0 ; // timer for wing and mouth movement
+	static float td = -0.2; // timerdifference
+	t += td;
+	if(t > 0 || t < -1)
+		td *= -1; // wings and mouth goes back and forth
+
+	// update positions
+	updateCamera(); 
+	bullets->run(); // update bullets
+	flock->run(); // update flocks
+	vec3 lightMov = normalize(cross(lightPos, vec3(0,1,0)));
+	lightMov *= 0.1;
+	lightPos += lightMov;
+
 	// Get current frame buffer size.
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -345,31 +350,22 @@ static void render()
 	P->perspective(45.0f, aspect, 0.01f, 100.0f);
 	M->loadIdentity();
 	
-	/* Create light source */
 	phung->bind();
-		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-		M->pushMatrix();
-
-			glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
-			glUniform3f(phung->getUniform("MatAmb"),1,2,2);
-			glUniform3f(phung->getUniform("MatDif"),0,0,0);
-			glUniform1f(phung->getUniform("shine"),1);
-				  		
-			M->translate(vec3(lightPos[0], lightPos[1], lightPos[2]));
-			M->scale(vec3(0.1,0.1,0.1));
-
-  			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-  			sphere->draw(phung);	
-		M->popMatrix();
-	phung->unbind();
-	
-	bullets->run();
-
-	phung->bind();
+		// draw light source 
 		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+		glUniform3f(phung->getUniform("MatAmb"),1,2,2);
+		glUniform3f(phung->getUniform("MatDif"),0,0,0);
+		glUniform1f(phung->getUniform("shine"),1);
+		M->pushMatrix();
+			M->translate(vec3(lightPos[0], lightPos[1], lightPos[2]));
+			M->scale(vec3(0.1,0.1,0.1));
+  			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+  			sphere->draw(phung);	
+		M->popMatrix();
+
+		// draw bullets	
 		glUniform3f(phung->getUniform("MatAmb"),0.2,0.2,0.2);
 		glUniform3f(phung->getUniform("MatDif"),0.2,0.2,0.2);
 		glUniform3f(phung->getUniform("MatSpec"), 0.3,0.3,0.3);
@@ -377,26 +373,21 @@ static void render()
 		for(vector<Bullet>::iterator it = bullets->bullets.begin() ; it != bullets->bullets.end() ; ++it)
 		{
 			M->pushMatrix();
+				// World position
 				M->translate(it->pos);
+				// Bullet size
 				M->scale(vec3(0.1,0.1,0.1));
 				glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 				sphere->draw(phung);
 			M->popMatrix();
 		}
-	phung->unbind();
 
-	phung->bind();
-		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-		glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+		// draw birds
 		glUniform3f(phung->getUniform("MatAmb"),0.0613, 0.5735, 0.025);
 		glUniform3f(phung->getUniform("MatDif"),0.2038, 0.87048, 0.0828);
 		glUniform3f(phung->getUniform("MatSpec"),0.057, 0.8376, 0.08601);
 		glUniform1f(phung->getUniform("shine"),10);
 		
-		static float t = 0 ;
-		static float td = -0.2;
-		flock->run();
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
 			M->pushMatrix();
@@ -414,15 +405,16 @@ static void render()
 				
 				// actual body transformation and drawing comes below
 				M->pushMatrix();
-					// head below
+					// head and mouth below
 					M->translate(vec3(0,-0.2,3));
 					M->scale(vec3(0.5,0.5,0.5));
 					M->rotate(0.2,vec3(1,0,0));
 					M->pushMatrix();
-						// mouth below
+						// mouth 
 						M->translate(vec3(0,0,1));
 						M->scale(vec3(0.5,0.5,0.5));
 						M->pushMatrix();
+							// bottom of mouth
 							M->rotate(M_PI, vec3(0,0,1));
 							M->rotate(t/2, vec3(1,0,0));
 							M->scale(vec3(1,0.5,1));
@@ -430,20 +422,20 @@ static void render()
 							glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 							half_pyramid->draw(phung);
 						M->popMatrix();
-						
+						// top of mouth
 						M->rotate(t/2, vec3(1,0,0));
 						M->scale(vec3(1,0.5,1));
 						M->translate(vec3(0,1,1));
 						glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 						half_pyramid->draw(phung);
 					M->popMatrix();
-
-
+					// skull
 					M->translate(vec3(0,0,-0.9));
 					M->scale(vec3(1,1.2,2));
 					glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 					sphere->draw(phung);
 				M->popMatrix();
+
 				// Left Wing
 				M->pushMatrix();
 					M->translate(vec3(0.65,0,0.3));
@@ -487,12 +479,9 @@ static void render()
 			M->popMatrix();
 		}
 
-		t += td;
-		if(t > 0 || t < -1)
-			td *= -1;
 	phung->unbind();
 
-
+	// Draw ground, nada más
 	grndShader->bind();
 		glUniformMatrix4fv(grndShader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(grndShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
@@ -521,10 +510,6 @@ static void render()
 
 	// Pop matrix stacks.
 	P->popMatrix();
-
-	vec3 lightMov = normalize(cross(lightPos, vec3(0,1,0)));
-	lightMov *= 0.1;
-	lightPos += lightMov;
 }
 
 

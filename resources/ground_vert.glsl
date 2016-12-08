@@ -14,7 +14,6 @@ out vec3 fragNor;
 void main() {
 
 	vec3 lightDir = vec3(1, 1, 1);
-	vec4 vPosition;
 
 	/* First model transforms */
 	gl_Position = P * V * M * vec4(vertPos.xyz, 1.0);
