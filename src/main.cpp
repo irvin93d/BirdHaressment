@@ -39,7 +39,7 @@ vec3 eye = vec3(0,2,-2);
 vec3 look = normalize(vec3(0,2,0) - eye) + eye; // Make sure eye to look point has length 1
 vec3 up = vec3(0,1,0);
 vec3 eyeMov = vec3(0,0,0); // set flags for smooth camera movement
-vec3 lightPos = vec3(20,15,0);
+vec3 lightPos = vec3(20,10,0);
 
 // Objects
 shared_ptr<Shape> half_pyramid;
@@ -122,7 +122,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 
 static void updateCamera()
 {
-	float moveSpeed = 0.05;
+	float moveSpeed = 0.3;
 	vec3 w = normalize(eye - look);
 	vec3 u = normalize(cross(up, w));
 
@@ -297,7 +297,6 @@ static void init()
 	phung->addUniform("MatSpec");
 	phung->addUniform("shine");
 	phung->addUniform("lightPos");
-	phung->addUniform("shadow");
 
 	grndShader = make_shared<Program>();
 	grndShader->setVerbose(true);
@@ -310,6 +309,7 @@ static void init()
 	grndShader->addAttribute("vertPos");
 	grndShader->addAttribute("vertNor");
 	grndShader->addAttribute("vertTex");
+	grndShader->addUniform("lightPos");
 	grndShader->addTexture(&grass);
 }
 
@@ -486,7 +486,8 @@ static void render()
 		glUniformMatrix4fv(grndShader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(grndShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniformMatrix4fv(grndShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-
+		glUniform3f(grndShader->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+		
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);

@@ -6,21 +6,24 @@ layout(location = 2) in vec2 vertTex;
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
+uniform vec3 lightPos;
 
-out vec3 vColor;
 out vec2 vTexCoord;
 out vec3 fragNor;
+out vec3 lightDir;
+out vec3 reflDir;
+out vec3 viewDir;
 
 void main() {
 
-	vec3 lightDir = vec3(1, 1, 1);
+	fragNor = (M  * vec4(vertNor, 0.0)).xyz;
 
-	/* First model transforms */
-	gl_Position = P * V * M * vec4(vertPos.xyz, 1.0);
-
-	fragNor = (V * M  * vec4(vertNor, 0.0)).xyz;
-	/* a color that could be blended - or be shading */
-	vColor = vec3(max(dot(fragNor, normalize(lightDir)), 0));
+	lightDir = normalize(lightPos - (M*vec4(vertPos,1)).xyz);
+	reflDir = normalize(mat3(V)*(2*dot(lightDir,fragNor)*fragNor-lightDir));
+	viewDir = normalize(-(V*M*vec4(vertPos,1)).xyz);
+	
 	/* pass through the texture coordinates to be interpolated */
 	vTexCoord = vertTex;
+
+	gl_Position = P * V * M * vec4(vertPos.xyz, 1.0);
 }

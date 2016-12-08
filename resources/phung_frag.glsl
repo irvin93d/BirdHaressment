@@ -1,8 +1,8 @@
 #version 330 core 
 out vec4 color;
 in vec3 fragNor;
-in vec3 reflVec;
-in vec3 viewVec;
+in vec3 reflDir;
+in vec3 viewDir;
 in vec3 lightDir;
 
 uniform vec3 MatAmb;
@@ -12,16 +12,12 @@ uniform float shine;
 
 uniform int shadow = 0;
 
-float ka = 0.5;
-float kd = 0.7;
-float ks = 1.0;
-
 void main()
 {
 	if(shadow == 0){
-		vec3 ambRefl = ka * MatAmb;
-		vec3 diffRefl = kd * max(0,dot(fragNor,lightDir))*MatDif;
-		vec3 specRefl = ks * pow(max(0,dot(viewVec, reflVec)),shine)*MatSpec;
+		vec3 ambRefl = 0.5 * MatAmb;
+		vec3 diffRefl = 0.7 * max(0,dot(fragNor,lightDir))*MatDif;
+		vec3 specRefl = 1.0 * pow(max(0,dot(viewDir, reflDir)),shine)*MatSpec;
 		color = vec4(ambRefl+diffRefl+specRefl, 1.0);
 	}
 	else{
