@@ -55,6 +55,9 @@ Texture grass;
 int g_GiboLen;
 GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
 
+// Some variables
+bool flockRunning = true;
+
 float randFloat(float min, float max) {
 	float range = max - min;
 	float num = range * rand() / RAND_MAX;
@@ -117,6 +120,9 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	}
 	if(key == GLFW_KEY_KP_SUBTRACT){
 		flock->removeBoid();
+	}
+	if(key == GLFW_KEY_P && action == GLFW_PRESS){
+		flockRunning = !flockRunning;
 	}
 }
 
@@ -273,7 +279,7 @@ static void init()
 	bullets = new Bullets();
 	flock->bullets = bullets;
 
-	for(int i = 0 ; i < 110 ; i++){
+	for(int i = 0 ; i < 100 ; i++){
 		flock->addBoid(
 			Boid(
 					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
@@ -324,7 +330,8 @@ static void render()
 	// update positions
 	updateCamera(); 
 	bullets->run(); // update bullets
-	flock->run(); // update flocks
+	if(flockRunning)
+		flock->run(); // update flocks
 	vec3 lightMov = normalize(cross(lightPos, vec3(0,1,0)));
 	lightMov *= 0.1;
 	lightPos += lightMov;
@@ -383,13 +390,12 @@ static void render()
 		}
 
 		// draw birds
-		glUniform3f(phung->getUniform("MatAmb"),0.0613, 0.5735, 0.025);
-		glUniform3f(phung->getUniform("MatDif"),0.2038, 0.87048, 0.0828);
-		glUniform3f(phung->getUniform("MatSpec"),0.057, 0.8376, 0.08601);
-		glUniform1f(phung->getUniform("shine"),10);
-		
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
+			glUniform3f(phung->getUniform("MatAmb"),0.0613, 0.2735, 0.025);
+			glUniform3f(phung->getUniform("MatDif"),0.2038, 0.57048, 0.0828);
+			glUniform3f(phung->getUniform("MatSpec"),0.057, 0.2376, 0.08601);
+		
 			M->pushMatrix();
 				// position world
 				M->translate(it->position); 
