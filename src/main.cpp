@@ -32,6 +32,7 @@ string RESOURCE_DIR = ""; // Where the resources are loaded from
 
 // Shaders
 shared_ptr<Program> phung;
+shared_ptr<Program> atmosphere;
 shared_ptr<Program> grndShader;
 
 // Light and camera
@@ -39,7 +40,7 @@ vec3 eye = vec3(0,2,-2);
 vec3 look = normalize(vec3(0,2,0) - eye) + eye; // Make sure eye to look point has length 1
 vec3 up = vec3(0,1,0);
 vec3 eyeMov = vec3(0,0,0); // set flags for smooth camera movement
-vec3 lightPos = vec3(20,10,0);
+vec3 lightPos = vec3(300,200,0);
 
 // Objects
 shared_ptr<Shape> half_pyramid;
@@ -69,9 +70,9 @@ void addRandBoid(){
 			Boid(
 					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
 					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1)),
-					vec3(randFloat(.1,.5),randFloat(.1,.5),randFloat(.1,.5)),
-					vec3(randFloat(.3,0.8),randFloat(.3,0.8),randFloat(.3,0.8)),
-					vec3(randFloat(0,.7),randFloat(0,.7),randFloat(0,.7))
+					vec3(randFloat(0,1),randFloat(0,1),randFloat(0,1)),
+					vec3(randFloat(0,1),randFloat(0,1),randFloat(0,1)),
+					vec3(randFloat(0,1),randFloat(0,1),randFloat(0,1))
 				)
 		);
 }
@@ -306,6 +307,17 @@ static void init()
 	phung->addUniform("shine");
 	phung->addUniform("lightPos");
 
+	atmosphere = make_shared<Program>();
+	atmosphere->setVerbose(true);
+	atmosphere->setShaderNames(RESOURCE_DIR + "atmo_vert.glsl", RESOURCE_DIR + "atmo_frag.glsl");
+	atmosphere->init();
+	atmosphere->addUniform("P");
+	atmosphere->addUniform("V");
+	atmosphere->addUniform("M");
+	atmosphere->addAttribute("vertPos");
+	atmosphere->addAttribute("vertNor");
+	atmosphere->addUniform("lightPos");
+
 	grndShader = make_shared<Program>();
 	grndShader->setVerbose(true);
 	grndShader->setShaderNames(RESOURCE_DIR + "ground_vert.glsl", RESOURCE_DIR + "ground_frag.glsl");
@@ -359,21 +371,38 @@ static void render()
 	P->perspective(45.0f, aspect, 0.01f, 100.0f);
 	M->loadIdentity();
 	
+	atmosphere->bind();
+		glUniformMatrix4fv(atmosphere->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(atmosphere->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniform3f(atmosphere->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+		M->pushMatrix();
+			M->translate(eye);
+			M->scale(vec3(100,100,100));
+  			glUniformMatrix4fv(atmosphere->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+  			sphere->draw(atmosphere);	
+		M->popMatrix();
+	atmosphere->unbind();
+
 	phung->bind();
 		// draw light source 
 		glUniformMatrix4fv(phung->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(phung->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniform3f(phung->getUniform("lightPos"), lightPos[0], lightPos[1], lightPos[2]);
-		glUniform3f(phung->getUniform("MatAmb"),1,2,2);
+		glUniform3f(phung->getUniform("MatAmb"),3,3,1.7);
 		glUniform3f(phung->getUniform("MatDif"),0,0,0);
+		glUniform3f(phung->getUniform("MatSpec"), 0,0,0);
 		glUniform1f(phung->getUniform("shine"),1);
 		M->pushMatrix();
-			M->translate(lightPos);
-			M->scale(vec3(0.5,0.5,0.5));
+			vec3 drawnLightPos = normalize(lightPos - eye);
+			drawnLightPos *= 30;
+			drawnLightPos += eye;
+
+			M->translate(drawnLightPos);
+			M->scale(vec3(0.7,0.7,0.7));
   			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
   			sphere->draw(phung);	
 		M->popMatrix();
-
+		
 		// draw bullets	
 		glUniform3f(phung->getUniform("MatAmb"),0.2,0.2,0.2);
 		glUniform3f(phung->getUniform("MatDif"),0.2,0.2,0.2);
