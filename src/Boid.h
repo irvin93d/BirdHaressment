@@ -16,7 +16,7 @@ using namespace glm;
 class Boid
 {
 public:
-	Boid(vec3 p, vec3 v);
+	Boid(vec3 p, vec3 v, vec3 ambColor, vec3 diffColor, vec3 specColor);
 	void run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 boundMin, vec3 boundMax, Bullets* bullets);
 	vec3 position;
 	vec3 velocity;
@@ -25,6 +25,9 @@ public:
 	float maxForce;
 	float minSpeed;
 	float maxSpeed;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
 
 private:
 	vec3 seperation(vector<Boid>::iterator start, vector<Boid>::iterator end);

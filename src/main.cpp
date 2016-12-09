@@ -64,6 +64,18 @@ float randFloat(float min, float max) {
 	return (num + min);
 }
 
+void addRandBoid(){
+	flock->addBoid(
+			Boid(
+					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
+					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1)),
+					vec3(randFloat(.1,.5),randFloat(.1,.5),randFloat(.1,.5)),
+					vec3(randFloat(.3,0.8),randFloat(.3,0.8),randFloat(.3,0.8)),
+					vec3(randFloat(0,.7),randFloat(0,.7),randFloat(0,.7))
+				)
+		);
+}
+
 static void error_callback(int error, const char *description)
 {
 	cerr << description << endl;
@@ -111,12 +123,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 			eyeMov.y++;
 	}
 	if(key == GLFW_KEY_KP_ADD){
-		flock->addBoid(
-			Boid(
-					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
-					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
-				)
-		);
+		addRandBoid();
 	}
 	if(key == GLFW_KEY_KP_SUBTRACT){
 		flock->removeBoid();
@@ -280,12 +287,7 @@ static void init()
 	flock->bullets = bullets;
 
 	for(int i = 0 ; i < 100 ; i++){
-		flock->addBoid(
-			Boid(
-					vec3(randFloat(-WORLD_SIZE,WORLD_SIZE),randFloat(4,WORLD_SIZE),randFloat(-WORLD_SIZE,WORLD_SIZE)),
-					vec3(randFloat(-0.1,0.1),randFloat(-0.1,0.1),randFloat(-0.1,0.1))
-				)
-		);
+		addRandBoid();
 	}
 
 	// Init shaders
@@ -392,9 +394,12 @@ static void render()
 		// draw birds
 		for(vector<Boid>::iterator it = flock->boids.begin() ; it != flock->boids.end() ; ++it)
 		{
-			glUniform3f(phung->getUniform("MatAmb"),0.0613, 0.2735, 0.025);
-			glUniform3f(phung->getUniform("MatDif"),0.2038, 0.57048, 0.0828);
-			glUniform3f(phung->getUniform("MatSpec"),0.057, 0.2376, 0.08601);
+			vec3 amb = it->ambient;
+			vec3 diff = it->diffuse;
+			vec3 spec = it->specular;
+			glUniform3f(phung->getUniform("MatAmb"),amb.x, amb.y, amb.z);
+			glUniform3f(phung->getUniform("MatDif"),diff.x, diff.y, diff.z);
+			glUniform3f(phung->getUniform("MatSpec"),spec.x, spec.y, spec.z);
 		
 			M->pushMatrix();
 				// position world

@@ -1,6 +1,6 @@
 #include "Boid.h"
 
-Boid::Boid(vec3 p, vec3 v) 
+Boid::Boid(vec3 p, vec3 v, vec3 ambColor, vec3 diffColor, vec3 specColor) 
 {
     position = p;
     velocity = v;
@@ -8,6 +8,9 @@ Boid::Boid(vec3 p, vec3 v)
 	minSpeed = 0.1;
 	maxSpeed = 0.40;
 	maxForce = 0.0015;
+	ambient = ambColor;
+	diffuse = diffColor;
+	specular = specColor;
 }
 
 void Boid::run(vector<Boid>::iterator start, vector<Boid>::iterator end, vec3 boundMin, vec3 boundMax, Bullets* bullets)
