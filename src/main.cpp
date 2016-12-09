@@ -368,8 +368,8 @@ static void render()
 		glUniform3f(phung->getUniform("MatDif"),0,0,0);
 		glUniform1f(phung->getUniform("shine"),1);
 		M->pushMatrix();
-			M->translate(vec3(lightPos[0], lightPos[1], lightPos[2]));
-			M->scale(vec3(0.1,0.1,0.1));
+			M->translate(lightPos);
+			M->scale(vec3(0.5,0.5,0.5));
   			glUniformMatrix4fv(phung->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
   			sphere->draw(phung);	
 		M->popMatrix();
