@@ -14,8 +14,8 @@ Bird Haressment is a graphical implementation of boids, using OpenGL and C++. It
 
 Clone the repository and cd into it:
 ```console
-  git clone https://github.com/irvin93d/CPE471-FinalProject.git
-  cd CPE471-FinalProject
+  git clone https://github.com/irvin93d/BirdHaressment.git
+  cd BirdHaressment
 ```
 Create and cd into build folder:
 ```console
@@ -74,7 +74,7 @@ Note that GLM, GLFW and and GLEW variables must be set up for program to run.
 ![Screenshot 2](./web/res/screen2.png)
 
 ### Demo video
-TODO: PUT VIDEO HERE
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/fkjIEVBFNgQ/0.jpg)](https://youtu.be/fkjIEVBFNgQ)
 
 ## Techonologies used
 
