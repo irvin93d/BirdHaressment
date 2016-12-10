@@ -575,7 +575,7 @@ int main(int argc, char **argv)
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
 	// Create a windowed mode window and its OpenGL context.
-	window = glfwCreateWindow(640, 480, "YOUR NAME", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Bird Haressment", NULL, NULL);
 	if(!window) {
 		glfwTerminate();
 		return -1;
