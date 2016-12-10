@@ -31,10 +31,8 @@ Run program:
 ```
 Note that GLM, GLFW and and GLEW variables must be set up for program to run.
 
-## Screenśhots
+## Screenshots
 
-TODO:
+![Screenshot 1](./web/res/screen1.png)
 
-![Screenshot 1](http://placekitten.com/400/300)
-
-![Screenshot 2](http://placekitten.com/400/300)
+![Screenshot 2](./web/res/screen2.png)
