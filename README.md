@@ -65,7 +65,7 @@ Note that GLM, GLFW and and GLEW variables must be set up for program to run.
 - [ ] Blood shall be spilled from cannibalism.
 
 ## Resources 
-- Boids example in 2-dimensions, a lot of this source code have bee  rewritten to C++: [Flocking - Processing.org](https://www.processing.org/examples/flocking.html)
+- Boids example in 2-dimensions, a lot of this source code have been rewritten to C++: [Flocking - Processing.org](https://www.processing.org/examples/flocking.html)
 
 ## Preview 
 
