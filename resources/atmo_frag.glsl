@@ -4,5 +4,5 @@ in float distance;
 
 void main()
 {
-	color = vec4(0.7*vec3(0.1,0.6,1)*pow(1/distance,1.2), 1.0);
+	color = vec4(vec3(0.1,0.6,1)*sqrt(1/distance), 1.0);
 }
