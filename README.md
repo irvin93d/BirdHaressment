@@ -1,4 +1,3 @@
-
 # Bird Haressment
 Author: [Duane Irvin](https://github.com/irvin93d)  
 Instructor: [Zoë Wood](http://users.csc.calpoly.edu/~zwood/teaching/csc471/index16.html)  
@@ -65,6 +64,9 @@ Note that GLM, GLFW and and GLEW variables must be set up for program to run.
 - [ ] Birds shall “eat” other birds when colliding, causes them to grow. New birds shall appear to keep the number somewhat consistent.
 - [ ] Blood shall be spilled from cannibalism.
 
+## Resources 
+- Boids example in 2-dimensions, a lot of this source code have bee  rewritten to C++: [Flocking - Processing.org](https://www.processing.org/examples/flocking.html)
+
 ## Preview 
 
 ### Screenshots
@@ -74,10 +76,7 @@ Note that GLM, GLFW and and GLEW variables must be set up for program to run.
 ![Screenshot 2](./web/res/screen2.png)
 
 ### Demo video
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/fkjIEVBFNgQ/0.jpg)](https://youtu.be/fkjIEVBFNgQ)
-
-## Techonologies used
+[![Bird Haressment Demo at Youtube](https://img.youtube.com/vi/fkjIEVBFNgQ/0.jpg)](https://youtu.be/fkjIEVBFNgQ)
 
 
-## Resources 
-- Boids example in 2-dimensions, a lot of this source code have bee  rewritten to C++: [Flocking - Processing.org](https://www.processing.org/examples/flocking.html)
+
